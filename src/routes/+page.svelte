@@ -1,4 +1,6 @@
 <script>
+	import { onMount } from 'svelte';
+	import store from '../store/socket.js';
 	let db = {};
 	let value = '';
 	const sessions = [
@@ -13,6 +15,16 @@
 			type: 'base'
 		}
 	];
+
+	let messages = [];
+	let message;
+
+	onMount(() => {
+		store.subscribe((currMessage) => {
+			messages = [...messages, currMessage];
+		});
+	});
+
 	function getSessionInIndexedDB(val) {
 		return new Promise((resolve, reject) => {
 			try {
@@ -87,7 +99,10 @@
 		const objStore = transaction.objectStore('sessions');
 
 		const response = objStore.add(session);
-		response.onsuccess = (ev) => console.log(ev, 'ev');
+		response.onsuccess = (ev) => {
+			store.sendMessage(JSON.stringify(session));
+			console.log(ev, 'ev');
+		};
 	}
 
 	let items = [];
